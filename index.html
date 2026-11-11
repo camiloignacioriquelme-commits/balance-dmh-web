@@ -1,12 +1,15 @@
 <!doctype html>
-<html lang="es-CL" data-theme="dark">
+<html lang="es-CL" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Monitor · Balance DMH</title>
   <meta name="description" content="Monitor de balance hídrico de la barrera de auscultación DMH (División Ministro Hales, Calama). Simulacro académico con datos de la tesis.">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#ffffff">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
   <link rel="stylesheet" href="css/styles.css">
   <script type="module" src="js/app.js"></script>
 </head>
@@ -15,12 +18,15 @@
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">
-        <strong>Barrera de auscultación DMH</strong>
-        <span>División Ministro Hales · Codelco · Calama</span>
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <strong>Balance hídrico · Barrera DMH</strong>
+          <span>División Ministro Hales · Calama</span>
+        </span>
       </div>
       <div id="status-pill" class="status-pill" role="status" aria-live="off"></div>
     </div>
-    <p class="sim-banner"><span aria-hidden="true">ⓘ</span> Simulacro académico · datos simulados y de la tesis</p>
+    <p class="sim-banner"><span>Simulacro académico</span> Datos simulados y de la tesis, no de sensores reales</p>
   </header>
 
   <nav class="tabbar" aria-label="Secciones">

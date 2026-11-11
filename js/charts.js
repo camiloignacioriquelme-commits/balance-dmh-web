@@ -35,7 +35,7 @@ export function gaugeSvg({ porcentaje, qTotal, semaforo, params }) {
       <text class="g-tick-label" x="${tx}" y="${ty + 4}" text-anchor="middle">${formatCl(t, 0)} %</text>`;
   }).join('');
   const value = porcentaje > 0.05 ? `<path class="g-value s-${semaforo.key}" d="${arc(cx, cy, r, start, angle(porcentaje))}"/>` : '';
-  return `<svg class="gauge" viewBox="-24 -4 288 234" role="img" aria-label="${formatCl(porcentaje, 1)} % de la meta, ${formatCl(qTotal, 1)} litros por segundo, estado ${semaforo.name}">
+  return `<svg class="gauge" viewBox="-24 0 288 196" role="img" aria-label="${formatCl(porcentaje, 1)} % de la meta, ${formatCl(qTotal, 1)} litros por segundo, estado ${semaforo.name}">
     ${bands}${value}${ticks}
     <text class="g-pct c-${semaforo.key}" x="${cx}" y="${cy + 2}" text-anchor="middle">${formatCl(porcentaje, 1)} %</text>
     <text class="g-q" x="${cx}" y="${cy + 30}" text-anchor="middle">${formatCl(qTotal, 1)} l/s</text>

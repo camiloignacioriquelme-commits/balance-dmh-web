@@ -6,7 +6,7 @@ import { state, liveCalcs, updateParams, updateSettings, loadCase0309, clearAllD
 
 const PREFS = [
   ['regla80', 'Regla del umbral naranja exacto', ''],
-  ['dark', 'Tema oscuro', 'Recomendado para sala de control; el claro se ve mejor proyectado'],
+  ['dark', 'Tema oscuro', 'Para sala de control o de noche. El claro se lee mejor proyectado y al sol.'],
   ['screen', 'Mantener la pantalla encendida', 'Útil durante una presentación. Gasta más batería.'],
   ['sound', 'Sonido de alerta', 'Pitido al cambiar de color (máximo uno cada 5 s)'],
   ['vibration', 'Vibración', 'Solo en celulares Android compatibles'],

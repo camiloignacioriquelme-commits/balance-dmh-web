@@ -20,7 +20,8 @@ export const SIM_MODES = {
 };
 
 export const DEFAULT_SETTINGS = Object.freeze({
-  theme: 'dark',
+  theme: 'light', // claro por defecto: se lee mejor proyectado y a pleno sol
+
   soundEnabled: true,
   vibrationEnabled: true,
   incluirPlantaEnTotal: false,

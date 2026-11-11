@@ -104,10 +104,16 @@ export function switchHtml({ id, checked, label, sub }) {
   </label>`;
 }
 
-/** Píldora de estado del semáforo. */
+const LAMPS = ['ROJO', 'NARANJA', 'AMARILLO', 'VERDE'];
+
+/**
+ * Semáforo de 4 luces: se enciende la del estado actual y las demás quedan apagadas.
+ * Se lee de lejos (proyectado) y no depende solo del color: cada luz tiene su nombre.
+ */
 export function badgeHtml(semaforo, { compact = false } = {}) {
-  return `<div class="badge bg-${semaforo.key}${compact ? ' compact' : ''}${semaforo.key === 'ROJO' ? ' pulse' : ''}">
-    <span class="badge-dot f-bg-${semaforo.key}" aria-hidden="true"></span>
+  const lamps = LAMPS.map((k) => `<span class="lamp lamp-${k}${k === semaforo.key ? ' on' : ''}" aria-hidden="true"></span>`).join('');
+  return `<div class="badge bg-${semaforo.key}${compact ? ' compact' : ''}${semaforo.key === 'ROJO' ? ' pulse' : ''}" role="group" aria-label="Semáforo: ${esc(semaforo.title)}">
+    <span class="lamps">${lamps}</span>
     <span class="badge-body"><strong class="c-${semaforo.key}">${esc(semaforo.title)}</strong>${compact ? '' : `<span>${esc(semaforo.action)}</span>`}</span>
   </div>`;
 }
