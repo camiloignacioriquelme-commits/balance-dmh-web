@@ -1,0 +1,348 @@
+<title>Diagnóstico Balance DMH</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: informe de una columna tipo "ficha técnica de faena": cabecera con estado, secciones con regla lateral fina, hallazgos como filas con franja de severidad del propio semáforo de la app. */
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --ink: #142029;
+  --ink-2: #3c4b57;
+  --muted: #64737f;
+  --line: #d9e0e6;
+  --accent: #0f6f86;      /* agua de pozo / acento hidro */
+  --accent-soft: #e2f1f5;
+  --rojo: #c42b23;
+  --naranja: #c45a0c;
+  --amarillo: #8a6a00;    /* amarillo legible sobre claro */
+  --amarillo-chip: #f6d54a;
+  --verde: #1f7a3f;
+  --code-bg: #eef2f5;
+  --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1419; --surface: #141e25; --ink: #e6edf2; --ink-2: #b9c6cf; --muted: #8b9aa5;
+    --line: #26343e; --accent: #5cc3d9; --accent-soft: #15303a;
+    --rojo: #ff6b61; --naranja: #ff9a4d; --amarillo: #f2cf4a; --amarillo-chip: #f2cf4a; --verde: #5fcf86;
+    --code-bg: #1b2831; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1419; --surface: #141e25; --ink: #e6edf2; --ink-2: #b9c6cf; --muted: #8b9aa5;
+  --line: #26343e; --accent: #5cc3d9; --accent-soft: #15303a;
+  --rojo: #ff6b61; --naranja: #ff9a4d; --amarillo: #f2cf4a; --amarillo-chip: #f2cf4a; --verde: #5fcf86;
+  --code-bg: #1b2831; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 16px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 860px; margin: 0 auto; display: grid; gap: 48px; }
+h1, h2, h3 { font-family: var(--f-display); font-stretch: 85%; text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2rem, 6vw, 2.9rem); font-weight: 800; letter-spacing: -0.01em; }
+h2 { font-size: 1.6rem; font-weight: 700; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0; max-width: 68ch; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--f-mono); font-size: 0.86em; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.eyebrow { font-family: var(--f-mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+header.top { display: grid; gap: 14px; padding-bottom: 24px; border-bottom: 2px solid var(--ink); }
+header.top .meta { display: flex; flex-wrap: wrap; gap: 6px 20px; color: var(--muted); font-size: 0.9rem; }
+.lead { font-size: 1.12rem; color: var(--ink-2); }
+
+section { display: grid; gap: 18px; }
+section > header { display: grid; gap: 4px; border-left: 3px solid var(--accent); padding-left: 14px; }
+
+.key { background: var(--accent-soft); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; display: grid; gap: 10px; }
+.key strong { color: var(--ink); }
+ul.plain { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; }
+ul.plain li { max-width: 68ch; }
+
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.94rem; }
+th, td { text-align: left; padding: 10px 14px; vertical-align: top; border-bottom: 1px solid var(--line); }
+th { font-family: var(--f-mono); font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+tr:last-child td { border-bottom: 0; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.diagram { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; overflow-x: auto; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 0.92rem; color: var(--ink-2); }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+.dot.r { background: var(--rojo); } .dot.n { background: var(--naranja); } .dot.a { background: var(--amarillo-chip); } .dot.v { background: var(--verde); }
+
+.findings { display: grid; gap: 10px; }
+.finding { background: var(--surface); border: 1px solid var(--line); border-left-width: 6px; border-radius: 8px; padding: 14px 16px; display: grid; gap: 6px; }
+.finding.sev-n { border-left-color: var(--naranja); }
+.finding.sev-a { border-left-color: var(--amarillo-chip); }
+.finding .head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.finding .id { font-family: var(--f-mono); font-size: 0.8rem; color: var(--muted); }
+.finding h3 { font-size: 1.05rem; }
+.finding .where { font-family: var(--f-mono); font-size: 0.8rem; color: var(--accent); overflow-wrap: anywhere; }
+.finding p { color: var(--ink-2); font-size: 0.95rem; }
+.finding p b { color: var(--ink); font-weight: 600; }
+.sevlabel { font-family: var(--f-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 1px 7px; border-radius: 4px; border: 1px solid currentColor; }
+.sevlabel.n { color: var(--naranja); } .sevlabel.a { color: var(--amarillo); }
+
+.chip { font-family: var(--f-mono); font-size: 0.75rem; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; }
+.chip.bajo { color: var(--verde); } .chip.medio { color: var(--amarillo); } .chip.alto { color: var(--naranja); }
+
+.options { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.opt { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 8px; align-content: start; }
+.opt.rec { border: 2px solid var(--accent); }
+.opt .tag { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.opt p { font-size: 0.94rem; color: var(--ink-2); }
+
+ol.qs { margin: 0; padding-left: 1.4em; display: grid; gap: 10px; }
+ol.qs li { max-width: 68ch; }
+footer { color: var(--muted); font-size: 0.86rem; border-top: 1px solid var(--line); padding-top: 16px; }
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <span class="eyebrow">Etapa 1 · Diagnóstico sin cambios de código</span>
+  <h1>Balance DMH: cómo funciona y qué arreglar</h1>
+  <p class="lead">Revisión completa del proyecto exportado desde Google AI Studio (<code>balance-dmh-1-nov-2026</code>): monitor de balance hídrico de la barrera de auscultación, División Ministro Hales, Calama.</p>
+  <div class="meta"><span>Para: Camilo</span><span>Fecha: 11-11-2026</span><span>Archivos revisados: 31 (todo el código Kotlin, configuración y tests)</span></div>
+</header>
+
+<section>
+  <header><span class="eyebrow">Resumen</span><h2>Lo más importante en 30 segundos</h2></header>
+  <div class="key">
+    <p><strong>Tu app es una aplicación Android nativa, no una página web.</strong> Está escrita en Kotlin con Jetpack Compose y se instala en el teléfono como cualquier app. Por eso Vercel o GitHub Pages no pueden publicarla tal como está: ellos sirven páginas web. Para tener "un link que funcione en celular y computador" hay que hacer una versión web. La buena noticia es que la parte que calcula (fórmulas, semáforo y datos de la tesis) es pequeña, ordenada y fácil de llevar a la web sin cambiar los resultados.</p>
+    <ul class="plain">
+      <li>Los cálculos están bien: comprobé a mano la serie de 69 días y da lo mismo que esperan los tests (promedio 31,17 l/s, desviación 1,27, 0 verdes / 29 amarillos / 37 naranjas / 3 rojos).</li>
+      <li>No encontré errores críticos 🔴 ni secretos (contraseñas o claves) dentro del proyecto.</li>
+      <li>Hay 5 problemas importantes 🟠: el proyecto no compila tal cual, los campos numéricos son incómodos de escribir, los umbrales personalizados no se reflejan en los gráficos, el tema claro tiene poco contraste y los datos solo viven en el teléfono.</li>
+      <li>Mi recomendación: una versión web estática en Vercel, sin Supabase por ahora. Supabase solo hace falta si quieres guardar lecturas reales compartidas entre personas o dispositivos.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <header><span class="eyebrow">1 · Cómo funciona</span><h2>Tu app explicada en simple</h2></header>
+  <p>La app responde a una pregunta: <b>¿la barrera de pozos está sacando suficiente agua?</b> Suma lo que se bombea (Outpit + T. extraído, y si quieres los pozos de planta y los pozos crónicos recuperados), lo compara con la meta de 35 l/s y muestra un semáforo. Además pone esa cifra en contexto con el modelo hidrogeológico (potencial 52–67 l/s, entradas 70–100 l/s) y la cruza con la deformación del talud que mide el radar.</p>
+  <div class="diagram">
+<pre class="mermaid">
+flowchart LR
+  A["Outpit<br/>(barrera de pozos)"] --> Q
+  B["T. extraído<br/>(bombeo rajo)"] --> Q
+  C["Pozos planta<br/>(opcional)"] -.-> Q
+  D["Pozos crónicos<br/>recuperados 0–4 × 0,8"] -.-> Q
+  Q["Caudal total Q<br/>(l/s)"] --> P["% de la meta<br/>Q ÷ 35 × 100"]
+  P --> S{"Semáforo"}
+  S --> V["Verde ≥ 100 %"]
+  S --> Y["Amarillo 90–99 %"]
+  S --> N["Naranja 80–90 %"]
+  S --> R["Rojo ≤ 80 %"]
+  Q --> M["Balance: captura de entradas,<br/>agua sin extraer, m³/día, hm³/año"]
+  RAD["Radar talud<br/>cm/día"] --> X["Aviso cruzado si radar en Rojo<br/>y caudal no en Rojo"]
+  S --> X
+</pre>
+  </div>
+  <p>De dónde salen los números del Monitor: <b>no hay sensores conectados</b>. El Monitor corre una simulación estadística (un proceso AR(1) calibrado con el promedio y la variación de la tesis) que genera una lectura cada segundo. También puedes reproducir la serie real de 69 días o fijar valores a mano desde la Calculadora. La app lo avisa con la etiqueta "SIMULACRO · DATOS FICTICIOS / DE TESIS".</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Pestaña</th><th>Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><b>Monitor</b></td><td>Medidor circular con %, semáforo, brecha a la meta, tendencia, gráfico de las últimas 60 lecturas, radar del talud, controles de simulación (1x/2x/5x, modos Normal / Falla / Recuperación / Manual), pozos crónicos con interruptor y modo presentación a pantalla completa.</td></tr>
+        <tr><td><b>Calculadora</b></td><td>Escribes Outpit, T. extraído y pozos planta, y el resultado se recalcula al instante. Tiene atajos con casos de la tesis, permite cambiar los parámetros del modelo y hacer un análisis de sensibilidad ("¿y si recupero N pozos?"). También guarda lecturas y las exporta a CSV para Excel.</td></tr>
+        <tr><td><b>Balance</b></td><td>Diagrama Entradas → Barrera → Salidas, barras comparativas, ecuación Entradas − Salidas = Δ Almacenamiento y equivalencias volumétricas.</td></tr>
+        <tr><td><b>Historial</b></td><td>Serie real de 69 días (10-ago a 27-oct) con gráfico, estadísticas, conteo por color, filtro y tabla. Destaca el 03-09 (Alerta Roja banco 2130).</td></tr>
+        <tr><td><b>Ajustes</b></td><td>Radar de deformación (deslizador 0–15 cm/día), umbrales del semáforo, regla del 80 % exacto, tema claro/oscuro, sonido, vibración, registro de eventos y botón para borrar todo.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Todo lo que guardas (lecturas, ajustes, eventos) queda en la memoria interna del teléfono (<code>SharedPreferences</code>). No hay internet, cuentas ni base de datos. El proyecto trae configurada la IA de Gemini/Firebase, pero <b>la app no la usa en ninguna parte</b>.</p>
+</section>
+
+<section>
+  <header><span class="eyebrow">2 · Qué pude probar</span><h2>Alcance de esta revisión</h2></header>
+  <ul class="plain">
+    <li><b>Sí:</b> leí todo el código. También recalculé por separado la serie histórica y verifiqué que los números de los tests (69 días, promedio, desviación, mínimo 26,78 el 11-08, máximo 33,52 el 30-09, conteo por color) son correctos.</li>
+    <li><b>No pude compilar ni abrir la app.</b> En este computador no hay Java, Android Studio ni el SDK de Android, y al proyecto le faltan archivos para compilar (ver hallazgo N1). Por eso los problemas visuales los deduje del código y no de capturas. Si eliges la versión web, ahí sí podré probarla en el navegador en tamaño celular antes de mostrártela.</li>
+    <li>Tampoco hay Git ni Node.js instalados. Los vamos a necesitar en la Etapa 2 (te guiaré a instalarlos).</li>
+  </ul>
+</section>
+
+<section>
+  <header><span class="eyebrow">3 · Errores y riesgos</span><h2>Hallazgos ordenados por gravedad</h2></header>
+  <div class="legend">
+    <span><span class="dot r"></span>🔴 Crítico: 0</span>
+    <span><span class="dot n"></span>🟠 Importante: 5</span>
+    <span><span class="dot a"></span>🟡 Menor: 11</span>
+  </div>
+
+  <div class="findings">
+    <article class="finding sev-n">
+      <div class="head"><span class="sevlabel n">🟠 Importante</span><span class="id">N1</span><h3>El proyecto no compila tal como viene</h3></div>
+      <span class="where">app/build.gradle.kts:36 y :55 · falta gradlew</span>
+      <p><b>Qué pasa:</b> la compilación de prueba pide un archivo <code>debug.keystore</code> que no viene en el zip, y tampoco vienen los scripts <code>gradlew</code>. Android Studio fallará al primer intento.</p>
+      <p><b>Cómo arreglarlo:</b> quitar la línea <code>signingConfig = signingConfigs.getByName("debugConfig")</code> (el README lo indica) y dejar que Android Studio genere el "wrapper" de Gradle. Solo aplica si mantenemos la versión Android.</p>
+    </article>
+
+    <article class="finding sev-n">
+      <div class="head"><span class="sevlabel n">🟠 Importante</span><span class="id">N2</span><h3>Escribir números con el teclado se "pelea" con el usuario</h3></div>
+      <span class="where">ui/components/NumericInputField.kt:59</span>
+      <p><b>Qué pasa:</b> cada vez que escribes un número válido, el campo se reescribe solo con el formato de la app. Por ejemplo, escribes "25" y aparece "25,0" con el cursor en medio, y si sigues tecleando queda "25,,0" y marca error. Al borrar pasa lo mismo. Además redondea a 1 decimal, así que 25,13 queda en 25,1.</p>
+      <p><b>Cómo arreglarlo:</b> que el campo mantenga lo que escribes y solo lo reformatee al salir del campo. Que respete los 2 decimales cuando el dato los tiene.</p>
+    </article>
+
+    <article class="finding sev-n">
+      <div class="head"><span class="sevlabel n">🟠 Importante</span><span class="id">N3</span><h3>Si cambias los umbrales, los gráficos siguen mostrando 80/90/100</h3></div>
+      <span class="where">CircularGauge.kt:77–113 y :152 · LiveWaveChart.kt:79–80 · MonitorScreen.kt:408</span>
+      <p><b>Qué pasa:</b> en Ajustes puedes cambiar los umbrales del semáforo, y el color sí cambia. Pero el medidor circular, las franjas del gráfico y la leyenda ("90-99 %") siguen dibujando los valores fijos 80/90/100. El gráfico puede quedar diciendo "amarillo" mientras el semáforo dice "naranja".</p>
+      <p><b>Cómo arreglarlo:</b> que todos los dibujos lean los umbrales desde la misma fuente (<code>SharedParams</code>), igual que el semáforo.</p>
+    </article>
+
+    <article class="finding sev-n">
+      <div class="head"><span class="sevlabel n">🟠 Importante</span><span class="id">N4</span><h3>En tema claro, el texto amarillo casi no se lee</h3></div>
+      <span class="where">ui/theme/Color.kt:28 y :33 · SemaforoBadge.kt:102 · CalculatorScreen.kt:199</span>
+      <p><b>Qué pasa:</b> el amarillo del semáforo (<code>#FACC15</code>) se usa directo como color de texto. Sobre fondo blanco tiene un contraste cercano a 1,5:1 y lo mínimo recomendado es 4,5:1. El proyecto ya trae un amarillo legible (<code>yellowText</code>), pero no se usa en ninguna parte. El celeste de acento en tema claro también queda bajo.</p>
+      <p><b>Cómo arreglarlo:</b> usar colores de texto separados de los colores de relleno del semáforo y revisar el contraste de cada uno.</p>
+    </article>
+
+    <article class="finding sev-n">
+      <div class="head"><span class="sevlabel n">🟠 Importante</span><span class="id">N5</span><h3>Las lecturas guardadas solo existen en ese teléfono</h3></div>
+      <span class="where">viewmodel/WaterMonitorViewModel.kt:57 y :762</span>
+      <p><b>Qué pasa:</b> las lecturas y el registro de eventos se guardan en la memoria interna del teléfono. Si desinstalas la app, cambias de equipo o borras sus datos, se pierden, y nadie más puede verlas. Para un simulacro de tesis puede bastar. Si la idea es registrar datos reales, no basta.</p>
+      <p><b>Cómo arreglarlo:</b> depende de lo que necesites (pregunta 3 al final). Si hay que compartir datos, ahí entra Supabase.</p>
+    </article>
+
+    <article class="finding sev-a">
+      <div class="head"><span class="sevlabel a">🟡 Menor</span><span class="id">M1</span><h3>La píldora de caudal del encabezado no se actualiza al activar pozos en modo Manual</h3></div>
+      <span class="where">MainActivity.kt:144 · SettingsScreen.kt:79</span>
+      <p><b>Qué pasa:</b> en modo Manual el número no cambia hasta que se mueve otro dato, porque esas dos pantallas no "escuchan" la lista de pozos. <b>Arreglo:</b> suscribirse a <code>chronicWells</code> como ya hace el Monitor.</p>
+    </article>
+
+    <article class="finding sev-a">
+      <div class="head"><span class="sevlabel a">🟡 Menor</span><span class="id">M2</span><h3>"Borrar todo" no borra todo</h3></div>
+      <span class="where">WaterMonitorViewModel.kt:320</span>
+      <p><b>Qué pasa:</b> la Calculadora y la sensibilidad quedan con los valores anteriores hasta reabrir la app, y el estado interno de alertas no se reinicia. <b>Arreglo:</b> reiniciar también esos valores.</p>
+    </article>
+
+    <article class="finding sev-a">
+      <div class="head"><span class="sevlabel a">🟡 Menor</span><span class="id">M3</span><h3>Una lectura guardada se borra sin confirmar ni poder deshacer</h3></div>
+      <span class="where">CalculatorScreen.kt:639</span>
+      <p><b>Arreglo:</b> mostrar un aviso con botón "Deshacer" durante unos segundos.</p>
+    </article>
+
+    <article class="finding sev-a">
+      <div class="head"><span class="sevlabel a">🟡 Menor</span><span class="id">M4</span><h3>Cambiar el rendimiento en la Calculadora cambia los pozos del Monitor sin avisar</h3></div>
+      <span class="where">WaterMonitorViewModel.kt:210–216</span>
+      <p><b>Qué pasa:</b> el análisis de sensibilidad debería ser un "¿qué pasaría si...?", pero también modifica el aporte real de los 4 pozos crónicos. Además, N° de pozos y rendimiento no se guardan al cerrar la app. <b>Arreglo:</b> separar ambas cosas, o avisarlo en pantalla si es intencional.</p>
+    </article>
+
+    <article class="finding sev-a">
+      <div class="head"><span class="sevlabel a">🟡 Menor</span><span class="id">M5</span><h3>El CSV calcula el % con la meta de hoy, no con la que había al guardar</h3></div>
+      <span class="where">WaterMonitorViewModel.kt:348</span>
+      <p><b>Arreglo:</b> guardar la meta (o el %) junto con cada lectura.</p>
+    </article>
+
+    <article class="finding sev-a">
+      <div class="head"><span class="sevlabel a">🟡 Menor</span><span class="id">M6</span><h3>Mín/Prom/Máx de la sesión parten "contaminados"</h3></div>
+      <span class="where">WaterMonitorViewModel.kt:102 · model/WaterModels.kt:159</span>
+      <p><b>Qué pasa:</b> el gráfico arranca con 60 valores inventados de 31,16, y el mínimo y el máximo parten en 31,2. En los primeros minutos las estadísticas no reflejan lo que realmente pasó. <b>Arreglo:</b> partir vacío.</p>
+    </article>
+
+    <article class="finding sev-a">
+      <div class="head"><span class="sevlabel a">🟡 Menor</span><span class="id">M7</span><h3>Rendimiento por pozo (paso 0,05) se muestra con 1 decimal</h3></div>
+      <span class="where">NumericInputField.kt:60</span>
+      <p><b>Qué pasa:</b> si eliges 0,85 l/s, el campo muestra "0,8" o "0,9". <b>Arreglo:</b> calcular los decimales según el paso.</p>
+    </article>
+
+    <article class="finding sev-a">
+      <div class="head"><span class="sevlabel a">🟡 Menor</span><span class="id">M8</span><h3>Librerías instaladas que no se usan</h3></div>
+      <span class="where">app/build.gradle.kts:106–128</span>
+      <p><b>Qué pasa:</b> Firebase AI (Gemini), App Check, Room, Retrofit, OkHttp y Moshi vienen incluidas, pero ninguna se usa. Hacen la app más pesada y suman cosas que pueden fallar al compilar. <b>Arreglo:</b> quitarlas.</p>
+    </article>
+
+    <article class="finding sev-a">
+      <div class="head"><span class="sevlabel a">🟡 Menor</span><span class="id">M9</span><h3>Letra muy pequeña en casi toda la app</h3></div>
+      <span class="where">varios archivos · 10–11 sp en etiquetas y botones</span>
+      <p><b>Qué pasa:</b> en terreno, con sol o con casco y lentes, 11 sp es difícil de leer. Los botones sí cumplen el tamaño táctil de 48 dp. <b>Arreglo:</b> subir la escala base a 13–14 sp.</p>
+    </article>
+
+    <article class="finding sev-a">
+      <div class="head"><span class="sevlabel a">🟡 Menor</span><span class="id">M10</span><h3>El gráfico del historial tiene el eje fijo en 22–38 l/s</h3></div>
+      <span class="where">HistoryScatterChart.kt:53–54</span>
+      <p><b>Qué pasa:</b> si subes la meta sobre 38 l/s, la línea de meta queda pegada arriba y en un lugar incorrecto. <b>Arreglo:</b> que la escala se ajuste a los datos y a la meta.</p>
+    </article>
+
+    <article class="finding sev-a">
+      <div class="head"><span class="sevlabel a">🟡 Menor</span><span class="id">M11</span><h3>"Caso 03-09 Alerta Roja" puede confundir, y la simulación gasta batería</h3></div>
+      <span class="where">MonitorScreen.kt:354 · model/WaterModels.kt:146 · SettingsScreen.kt:190</span>
+      <p><b>Qué pasa:</b> al cargar el caso, el semáforo de caudal queda en Amarillo (32,1 l/s = 91,8 %). Lo rojo es el radar, y el nombre del botón no lo deja claro. Aparte, la simulación corre siempre y la pantalla se mantiene encendida por defecto, lo que gasta batería. El deslizador del radar guarda en memoria en cada movimiento. <b>Arreglo:</b> renombrar el botón ("Caso 03-09 · radar crítico"), apagar la pantalla encendida por defecto y guardar el radar al soltar el deslizador.</p>
+    </article>
+  </div>
+  <p><b>Seguridad:</b> no encontré contraseñas, tokens ni claves dentro del proyecto. El archivo <code>.env</code> no viene incluido y <code>.gitignore</code> ya lo excluye. La única "contraseña" visible es <code>android</code> del certificado de prueba, que es estándar y pública. No hay nada que rotar.</p>
+</section>
+
+<section>
+  <header><span class="eyebrow">4 · Propuestas de mejora</span><h2>Qué haría yo, en orden</h2></header>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>#</th><th>Mejora</th><th>Esfuerzo</th><th>Prioridad</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td><b>Versión web</b> con los mismos cálculos, datos y pantallas, usable en celular y computador desde un link. Se puede instalar en el teléfono como app (PWA) y funciona sin internet.</td><td><span class="chip alto">alto</span></td><td>Alta, si tu meta es el link</td></tr>
+        <tr><td class="num">2</td><td>Arreglar los campos numéricos (N2, M7)</td><td><span class="chip bajo">bajo</span></td><td>Alta</td></tr>
+        <tr><td class="num">3</td><td>Umbrales consistentes en todos los gráficos (N3, M10)</td><td><span class="chip bajo">bajo</span></td><td>Alta</td></tr>
+        <tr><td class="num">4</td><td>Contraste y tamaño de letra (N4, M9)</td><td><span class="chip medio">medio</span></td><td>Alta</td></tr>
+        <tr><td class="num">5</td><td>Separar claramente "simulación" de "datos reales" en la interfaz: hoy el gráfico dice "Telemetría en tiempo real" aunque los datos sean simulados.</td><td><span class="chip bajo">bajo</span></td><td>Media</td></tr>
+        <tr><td class="num">6</td><td>Corregir M1–M6 y M11</td><td><span class="chip bajo">bajo</span></td><td>Media</td></tr>
+        <tr><td class="num">7</td><td>Más pruebas automáticas: hoy solo se prueban las fórmulas. Faltan el antirrebote de alertas, el borrado y la exportación.</td><td><span class="chip medio">medio</span></td><td>Media</td></tr>
+        <tr><td class="num">8</td><td>Quitar las librerías que no se usan (M8), solo si mantenemos Android</td><td><span class="chip bajo">bajo</span></td><td>Baja</td></tr>
+        <tr><td class="num">9</td><td>Registrar lecturas reales diarias y compartirlas con Supabase (solo si lo necesitas)</td><td><span class="chip medio">medio</span></td><td>Depende de ti</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <header><span class="eyebrow">5 · Publicación</span><h2>Plan recomendado para dejarla online</h2></header>
+  <div class="options">
+    <div class="opt rec">
+      <span class="tag">Recomendado</span>
+      <h3>A · Versión web en Vercel</h3>
+      <p>Reescribo la app como sitio web estático (sin servidor), con los mismos cálculos y los tests llevados a la web para asegurar que los números no cambien. Vercel la publica gratis desde GitHub, y cada cambio genera un link de vista previa para revisarlo antes de publicarlo.</p>
+      <p><b>Por qué Vercel y no GitHub Pages:</b> ambos sirven para una app estática. Vercel te da esos links de vista previa por cada cambio, lo que ayuda mucho para aprender y revisar con calma.</p>
+    </div>
+    <div class="opt">
+      <span class="tag">Alternativa</span>
+      <h3>B · Mantener solo Android</h3>
+      <p>Arreglo la app Android y la compartes como archivo APK desde GitHub (Releases). Funciona solo en teléfonos Android, no en iPhone ni en computador, y hay que instalar Android Studio para compilarla.</p>
+    </div>
+    <div class="opt">
+      <span class="tag">Más adelante</span>
+      <h3>C · Ambas</h3>
+      <p>Versión web para todos y Android para quien la quiera instalada. Es el doble de mantenimiento, así que no lo recomiendo al comienzo.</p>
+    </div>
+  </div>
+  <p><b>¿Supabase?</b> No hace falta para la app tal como es hoy: los cálculos y la serie de la tesis van dentro de la página, y los ajustes pueden quedar en el navegador de cada persona. Solo lo necesitas si quieres <b>(a)</b> registrar lecturas reales y verlas desde varios equipos, o <b>(b)</b> que varias personas compartan el mismo historial. En ese caso agregaríamos inicio de sesión con enlace al correo.</p>
+</section>
+
+<section>
+  <header><span class="eyebrow">6 · Tu turno</span><h2>Lo que necesito que me digas</h2></header>
+  <ol class="qs">
+    <li><b>Publicación:</b> ¿vamos con la versión web en Vercel (A), arreglamos solo Android (B) o ambas (C)?</li>
+    <li><b>Arreglos:</b> ¿cuáles hago? Mi propuesta: N2, N3, N4, M1–M7, M10 y M11 dentro de la versión que elijas.</li>
+    <li><b>Datos:</b> ¿la app es solo para presentar la tesis (simulacro) o alguien va a registrar datos reales del día? Esto define si usamos Supabase.</li>
+    <li><b>Quién la usa:</b> ¿tú en la defensa, la comisión, operadores en terreno? Cambia el diseño (Etapa 3).</li>
+    <li><b>GitHub:</b> ¿ya tienes el proyecto en un repositorio? Si no, lo creamos juntos.</li>
+  </ol>
+</section>
+
+<footer>Revisión hecha por Claude sobre el zip exportado de AI Studio. Las referencias <code>archivo:línea</code> apuntan a <code>app/src/main/java/com/example/…</code>. No se modificó ningún archivo del proyecto.</footer>
+</div>

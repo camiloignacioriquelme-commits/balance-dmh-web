@@ -1,0 +1,14 @@
+# Dependencias y builds (por si se agregan en el futuro)
+node_modules/
+dist/
+.vercel/
+
+# Secretos: nunca subir
+.env
+.env.*
+!.env.example
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.log

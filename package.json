@@ -1,0 +1,14 @@
+{
+  "name": "balance-dmh-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monitor de Balance Hídrico · Barrera de Auscultación DMH (versión web)",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/",
+    "dev": "node scripts/serve.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
