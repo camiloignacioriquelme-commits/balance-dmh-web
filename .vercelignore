@@ -3,4 +3,5 @@ tests/
 scripts/
 docs/
 README.md
+CLAUDE.md
 package.json
