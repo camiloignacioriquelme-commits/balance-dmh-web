@@ -1,0 +1,6 @@
+# Lo que NO se publica en el sitio (queda solo en GitHub)
+tests/
+scripts/
+docs/
+README.md
+package.json
