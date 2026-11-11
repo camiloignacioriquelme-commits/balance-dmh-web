@@ -1,7 +1,7 @@
 // Arranque de la app: navegación entre pestañas, encabezado, avisos, modo presentación,
 // tema, sonido, vibración y pantalla encendida.
 
-import { formatCl } from './logic.js';
+import { formatCl, calculateRadarStatus } from './logic.js';
 import { gaugeSvg } from './charts.js';
 import { badgeHtml, esc } from './ui.js';
 import { state, subscribe, setEffects, liveCalcs, setPresentation, init } from './store.js';
@@ -98,7 +98,8 @@ function beep(colorKey) {
 
 function alertEffects(colorKey) {
   if (state.settings.soundEnabled) beep(colorKey);
-  if (state.settings.vibrationEnabled && touched && navigator.vibrate) {
+  const activated = navigator.userActivation ? navigator.userActivation.hasBeenActive : touched;
+  if (state.settings.vibrationEnabled && activated && navigator.vibrate) {
     navigator.vibrate({ ROJO: [150, 100, 250], NARANJA: [120, 80, 120], AMARILLO: [80], VERDE: [50] }[colorKey]);
   }
 }
@@ -125,6 +126,13 @@ function renderPresentation() {
   const c = liveCalcs();
   overlay.querySelector('[data-b="p-gauge"]').innerHTML = gaugeSvg({ porcentaje: c.porcentajeMeta, qTotal: c.qTotal, semaforo: c.semaforo, params: state.params });
   overlay.querySelector('[data-b="p-badge"]').innerHTML = badgeHtml(c.semaforo);
+  // El cruce con el radar también se proyecta: es la idea central del caso 03-09.
+  const radar = calculateRadarStatus(state.settings.deformacionRadarCmDia);
+  const mismatch = radar.key === 'ROJO' && c.semaforo.key !== 'ROJO';
+  overlay.querySelector('[data-b="p-radar"]').innerHTML = `
+    <p class="p-radar-line"><span class="eyebrow">Radar talud · Pared Este</span>
+      <strong class="mono c-R-${radar.key}">${formatCl(state.settings.deformacionRadarCmDia, 1)} cm/d · ${esc(radar.short)}</strong></p>
+    ${mismatch ? '<p class="p-radar-alert">Caudal aceptable con deformación crítica: importa dónde se extrae, no solo cuánto.</p>' : ''}`;
 }
 function togglePresentationView() {
   overlay.hidden = !state.presentation;
